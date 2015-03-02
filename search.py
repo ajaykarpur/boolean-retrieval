@@ -5,9 +5,9 @@ import getopt
 #-------------------------------------------------------------------------------
 
 def usage():
-    print "usage: " + sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries -o output-file-of-results"
+    print "usage: " + sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries_filename -o output-file-of-results"
 
-dictionary = postings = queries = output = None
+dict_filename = post_filename = queries_filename = output_filename = None
 
 try:
     opts, args = getopt.getopt(sys.argv[1:], 'd:p:q:o:')
@@ -17,15 +17,15 @@ except:
         
 for o, a in opts:
     if o == '-d':
-        dictionary = a
+        dict_filename = a
     elif o == '-p':
-        postings = a
+        post_filename = a
     elif o == '-q':
-        queries = a
+        queries_filename = a
     elif o == '-o':
-        output = a
+        output_filename = a
     else:
         assert False, "unhandled option"
-if dictionary == None or postings == None or queries == None or output == None:
+if dict_filename == None or post_filename == None or queries_filename == None or output_filename == None:
     usage()
     sys.exit(2)
