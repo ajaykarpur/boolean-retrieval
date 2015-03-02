@@ -44,3 +44,12 @@ Temporary Items
 
 # NLTK data
 nltk_data/corpora/reuters
+
+# testing
+dictionary.txt
+postings.txt
+output.txt
+index.console.txt
+index.log.txt
+search.console.txt
+search.log.txt
