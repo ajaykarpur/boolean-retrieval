@@ -1,7 +1,7 @@
 import sys
 import getopt
 import os, os.path
-import linecache
+import string
 import pickle
 import collections
 import nltk
@@ -20,15 +20,22 @@ class Index(object):
         pickle.dump(self.dictionary, open(self.dict_filename, "wb"))
 
     def create_postings(self, dirname):
-        for count, filename in enumerate(os.listdir(dirname)):
+        stopwords = set(string.punctuation)
+        if "stopwords" in os.listdir(os.path.dirname(dirname)):
+            with open(os.path.dirname(dirname) + "\\stopwords") as s:
+                stopwords = set(s.read().split()).union(stopwords)
+
+        for count, doc_id in enumerate(os.listdir(dirname)):
             if count == self.k:
                 break
-            with open(dirname + "\\" + filename) as f:
-                for line in f:
-                    for word in nltk.word_tokenize(line):
-                        word = stemmer.stem(word).lower()
-                        if self.postings[word][-1:] != filename:
-                            self.postings[word].append(filename)
+            with open(dirname + "\\" + doc_id) as f:
+                text = f.read()
+                tokens = [word for sent in nltk.sent_tokenize(text) for word in nltk.word_tokenize(sent)]
+                for token in tokens:
+                    word = stemmer.stem(token).lower()
+                    if word not in stopwords:
+                        if self.postings[word][-1:] != [doc_id]:
+                            self.postings[word].append(doc_id)
         
         with open(post_filename, 'w') as f:
             for word in self.postings:
@@ -36,7 +43,7 @@ class Index(object):
                 offset = f.tell()
                 self.dictionary[word] = frequency, offset
                 
-                positions = " ".join(self.postings[word])
+                positions = " ".join(sorted(self.postings[word], key=int))
                 f.write(positions + "\n")
 
 #-------------------------------------------------------------------------------

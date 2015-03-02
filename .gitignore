@@ -43,7 +43,7 @@ Temporary Items
 .apdisk
 
 # NLTK data
-nltk_data/corpora/reuters
+nltk_data/
 
 # testing
 dictionary.txt
