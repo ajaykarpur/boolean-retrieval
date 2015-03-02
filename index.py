@@ -1,34 +1,44 @@
 import sys
 import getopt
 import os, os.path
+import linecache
+import pickle
+import collections
 import nltk
+from nltk.stem.porter import PorterStemmer
+
+stemmer = PorterStemmer()
 
 class Index(object):
-    def __init__(self, documents, dictionary, postings, k):
+    def __init__(self, doc_directory, dict_filename, post_filename, k):
         self.k = k
-        self.dictionary_filename = dictionary
-        self.postings_filename = postings
-        self.create_dictionary(documents)
-        self.create_postings(documents)
+        self.dict_filename = dict_filename
+        self.post_filename = post_filename
+        self.postings = collections.defaultdict(list)
+        self.dictionary = {}
+        self.create_dictionary(doc_directory)
+        self.create_postings(doc_directory)
 
     def create_dictionary(self, dirname):
-
         for count, filename in enumerate(os.listdir(dirname)):
             if count == self.k:
                 break
-            f = open(dirname + "\\" + filename)
-            print filename
-            f.close()
+            with open(dirname + "\\" + filename) as f:
+                for line in f:
+                    for word in nltk.word_tokenize(line):
+                        self.postings[stemmer.stem(word)].append(filename)
+        
+        pickle.dump(self.dictionary, open(self.dict_filename, "wb"))
 
     def create_postings(self, dirname):
-        pass
+        pickle.dump(self.postings, open(self.post_filename, "wb"))
 
 #-------------------------------------------------------------------------------
 
 def usage():
-    print "usage: " + sys.argv[0] + " -i directory-of-documents -d dictionary-file -p postings-file"
+    print "usage: " + sys.argv[0] + " -i directory-of-doc_directory -d dict_filename-file -p post_filename-file"
 
-documents = dictionary = postings = k = None
+doc_directory = dict_filename = post_filename = k = None
 
 try:
     opts, args = getopt.getopt(sys.argv[1:], 'i:d:p:k:')
@@ -41,19 +51,19 @@ except:
         
 for o, a in opts:
     if o == '-i':
-        documents = a
+        doc_directory = a
     elif o == '-d':
-        dictionary = a
+        dict_filename = a
     elif o == '-p':
-        postings = a
+        post_filename = a
     elif o == '-k':
         k = int(a)
     else:
         assert False, "unhandled option"
-if documents == None or dictionary == None or postings == None:
+if doc_directory == None or dict_filename == None or post_filename == None:
     usage()
     sys.exit(2)
 if k == None:
-    k = len(os.listdir(documents))
+    k = len(os.listdir(doc_directory))
 
-my_Index = Index(documents, dictionary, postings, k)
+my_Index = Index(doc_directory, dict_filename, post_filename, k)
