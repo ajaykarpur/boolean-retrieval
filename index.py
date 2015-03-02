@@ -1,5 +1,8 @@
 import sys
 import getopt
+import nltk
+
+nltk.download()
 
 #-------------------------------------------------------------------------------
 
