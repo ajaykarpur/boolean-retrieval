@@ -16,22 +16,28 @@ class Index(object):
         self.post_filename = post_filename
         self.postings = collections.defaultdict(list)
         self.dictionary = {}
-        self.create_dictionary(doc_directory)
         self.create_postings(doc_directory)
+        pickle.dump(self.dictionary, open(self.dict_filename, "wb"))
 
-    def create_dictionary(self, dirname):
+    def create_postings(self, dirname):
         for count, filename in enumerate(os.listdir(dirname)):
             if count == self.k:
                 break
             with open(dirname + "\\" + filename) as f:
                 for line in f:
                     for word in nltk.word_tokenize(line):
-                        self.postings[stemmer.stem(word)].append(filename)
+                        word = stemmer.stem(word).lower()
+                        if self.postings[word][-1:] != filename:
+                            self.postings[word].append(filename)
         
-        pickle.dump(self.dictionary, open(self.dict_filename, "wb"))
-
-    def create_postings(self, dirname):
-        pickle.dump(self.postings, open(self.post_filename, "wb"))
+        with open(post_filename, 'w') as f:
+            for word in self.postings:
+                frequency = len(self.postings[word])
+                offset = f.tell()
+                self.dictionary[word] = frequency, offset
+                
+                positions = " ".join(self.postings[word])
+                f.write(positions + "\n")
 
 #-------------------------------------------------------------------------------
 
