@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import sys
 import getopt
-import os, os.path
+import os
 import string
 import pickle
 import collections
@@ -10,7 +10,7 @@ from nltk.stem.porter import PorterStemmer
 
 stemmer = PorterStemmer()
 
-class Index(object):
+class Indexer(object):
     def __init__(self, doc_directory, dict_filename, post_filename, k):
         self.k = k
         self.dict_filename = dict_filename
@@ -96,4 +96,4 @@ if doc_directory == None or dict_filename == None or post_filename == None:
 if k == None:
     k = len(os.listdir(doc_directory))
 
-my_Index = Index(doc_directory, dict_filename, post_filename, k)
+my_index = Indexer(doc_directory, dict_filename, post_filename, k)
