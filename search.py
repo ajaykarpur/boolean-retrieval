@@ -1,19 +1,18 @@
 #!/usr/bin/python
 import sys
 import getopt
+import pickle
 
 
-theDictionary ={}
+the_dictionary ={}
 #-------------------------------------------------------------------------------
-def getDictionary(infile)
-    with open(filepath, 'r') as f
-        for line in f:
-            k, v = line.strip().split()
-            theDictionary[k.strip()] = v.strip()
-            f.close()
+   
 
-def search
-
+def search():
+     with open(dict_filename, 'r') as f
+        the_dictionary = pickle.load(infile)
+    for i in the_dictionary:
+        print(the_dictionary[i])
 
 
 def usage():
