@@ -2,7 +2,19 @@
 import sys
 import getopt
 
+
+theDictionary ={}
 #-------------------------------------------------------------------------------
+def getDictionary(infile)
+    with open(filepath, 'r') as f
+        for line in f:
+            k, v = line.strip().split()
+            theDictionary[k.strip()] = v.strip()
+            f.close()
+
+def search
+
+
 
 def usage():
     print "usage: " + sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries_filename -o output-file-of-results"
