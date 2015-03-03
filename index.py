@@ -29,13 +29,13 @@ class Index(object):
         """
         stopwords = set(string.punctuation)
         if "stopwords" in os.listdir(os.path.dirname(dirname)): # remove stopwords if given
-            with open(os.path.dirname(dirname) + "\\stopwords") as s:
+            with open(os.path.join(os.path.dirname(dirname), "stopwords")) as s:
                 stopwords = set(s.read().split()).union(stopwords)
 
         for count, doc_id in enumerate(os.listdir(dirname)):
             if count == self.k: # use k documents to train
                 break
-            with open(dirname + "\\" + doc_id) as f:
+            with open(os.path.join(dirname, doc_id)) as f:
                 text = f.read()
                 tokens = [word for sent in nltk.sent_tokenize(text) for word in nltk.word_tokenize(sent)]
                 for token in tokens:
