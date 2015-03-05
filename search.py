@@ -68,14 +68,14 @@ def make_queries():
                         try:
                             p.seek(the_dictionary[operand][1])
                             operand = p.readline().split()
-                            operand.insert("NOT", 0)
+                            operand.insert(0,"NOT")
                         except KeyError:
-                            operand = []
-                            operand[0] = "NOT"
+                            operand = ["0"]
+                            operand.insert(0,"NOT")
                     elif operand[0] == "NOT": # NOT NOT cancels
                         operand.pop(0)
                     else :
-                        operand.insert("NOT",0)
+                        operand.insert(0,"NOT")
                 if(token in boolean_precedence and token != "NOT"):
                     operand_1 = result_stack.pop()
                     operand_2 = result_stack.pop()
@@ -85,7 +85,7 @@ def make_queries():
                             operand_1 =p.readline().split()
                             print operand_1
                         except KeyError:
-                            operand_1 = []
+                            operand_1 = ["0"]
                     
                     if isinstance(operand_2, basestring):
                         try:
@@ -93,7 +93,7 @@ def make_queries():
                             operand_2 = p.readline().split()
                             print operand_2
                         except KeyError:
-                            operand_2 = []
+                            operand_2 = ["0"]
                     if token == "AND":
                         if(operand_1[0] == "NOT" or operand_2[0] == "NOT"):
                             result_stack.append(perform_not_and(operand_1,operand_2))
@@ -118,7 +118,7 @@ def perform_not_or(operand_1,operand_2):
     result_list = []
     if(operand_1[0] == "NOT" and operand_2[0] == "NOT"):
         result_list = perform_and(operand_1.pop(0),operand_2.pop(1))
-        result_list.insert("NOT",0)
+        result_list.insert(0,"NOT")
     elif(operand_1[0] == "NOT"):
         result_list = operand_1
     else:
@@ -129,7 +129,7 @@ def perform_not_and(operand_1,operand_2):
     result_list = []
     if(operand_1[0] == "NOT" and operand_2[0] == "NOT"):
         result_list = perform_or(operand_1.pop(0),operand_2.pop(1))
-        result_list.insert("NOT",0)
+        result_list.insert(0,"NOT")
     elif(operand_1[0] == "NOT"):
         result_list = a_less_b(operand_2,operand_1)
     else:
