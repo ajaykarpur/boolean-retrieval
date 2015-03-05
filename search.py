@@ -3,13 +3,17 @@ import sys
 import getopt
 import pickle
 import math
+import nltk
+from nltk.stem.porter import PorterStemmer
 
+stemmer = PorterStemmer()
 
 the_dictionary = {}
 boolean_precedence = {'OR':1,'AND':2,'NOT':3,'(':0}
 opp_stack = []
 output_stack = []
 result_stack = []
+universal_set = []
 #-------------------------------------------------------------------------------
    
     
@@ -26,8 +30,9 @@ def make_queries():
     goes through each line of the query file building
     a post index queue for the queries and then performing that query
     """
-    with open(dict_filename, 'r') as d:
+    with open(dict_filename, 'r') as d,open("all_doc_ids.txt",'r') as u:
         the_dictionary = pickle.load(d)
+        universal_set = pickle.load(u)
     #print the_dictionary
     with open(queries_filename,'r') as f, open(post_filename,'r') as p:
         
@@ -54,48 +59,118 @@ def make_queries():
                     
             while opp_stack:
                 output_stack.append(opp_stack.pop())
-            print output_stack
+
             while output_stack:
                 token = output_stack.pop(0)
-                if(token in boolean_precedence):
+                if token == "NOT":
+                    operand = result_stack.pop()
+                    if isinstance(operand, basestring):
+                        try:
+                            p.seek(the_dictionary[operand][1])
+                            operand = p.readline().split()
+                            operand.insert("NOT", 0)
+                        except KeyError:
+                            operand = []
+                            operand[0] = "NOT"
+                    elif operand[0] == "NOT": # NOT NOT cancels
+                        operand.pop(0)
+                    else :
+                        operand.insert("NOT",0)
+                if(token in boolean_precedence and token != "NOT"):
                     operand_1 = result_stack.pop()
                     operand_2 = result_stack.pop()
-                    if isinstance(operand_1, str):
+                    if isinstance(operand_1, basestring):
                         try:
                             p.seek(the_dictionary[operand_1][1])
                             operand_1 =p.readline().split()
+                            print operand_1
                         except KeyError:
                             operand_1 = []
                     
-                    if isinstance(operand_2, str):
+                    if isinstance(operand_2, basestring):
                         try:
                             p.seek(the_dictionary[operand_2][1])
-                            operand_2 =p.readline().split()
+                            operand_2 = p.readline().split()
+                            print operand_2
                         except KeyError:
                             operand_2 = []
                     if token == "AND":
-                        result_stack.append(perform_and(operand_1,operand_2))
-                    elif token == "OR": 
-                        perform_or(operand_1,operand_2)
+                        if(operand_1[0] == "NOT" or operand_2[0] == "NOT"):
+                            result_stack.append(perform_not_and(operand_1,operand_2))
+                        else:
+                            result_stack.append(perform_and(operand_1,operand_2))
+                    elif token == "OR":
+                        if(operand_1[0] == "NOT" or operand_2[0] == "NOT"):
+                            result_stack.append(perform_not_or(operand_1,operand_2)) 
+                        else:  
+                            result_stack.append(perform_or(operand_1,operand_2))
                 else:
                     result_stack.append(token)
-
-                    #perform_query(operand_1,operand_2,token)
-
+            result = result_stack.pop()
+            if result[0] == "NOT":
+                a_less_b(universal_set,result)
+            print "here is the result"
+            print result_stack
 
 
  
+def perform_not_or(operand_1,operand_2):
+    result_list = []
+    if(operand_1[0] == "NOT" and operand_2[0] == "NOT"):
+        result_list = perform_and(operand_1.pop(0),operand_2.pop(1))
+        result_list.insert("NOT",0)
+    elif(operand_1[0] == "NOT"):
+        result_list = operand_1
+    else:
+        result_list = operand_2
+    return result_list
+
+def perform_not_and(operand_1,operand_2):
+    result_list = []
+    if(operand_1[0] == "NOT" and operand_2[0] == "NOT"):
+        result_list = perform_or(operand_1.pop(0),operand_2.pop(1))
+        result_list.insert("NOT",0)
+    elif(operand_1[0] == "NOT"):
+        result_list = a_less_b(operand_2,operand_1)
+    else:
+        result_list = a_less_b(operand_1,operand_2)
+    return result_list
+
+def a_less_b(operand_1,operand_2):
+    """
+    returns the set operand_1 less everything thats in the set operand_2
+    """
+    i = j = 0
+    skip_1 = int(math.sqrt(len(operand_1)))
+    skip_2 = int(math.sqrt(len(operand_2)))
+    while i<len(operand_1) and j<len(operand_2):
+        if operand_1[i] == operand_2[j]:
+            operand_1.pop(i)
+            i +=1
+            j +=1
+        elif int(operand_1[i]) < int(operand_2[j]):
+            i +=1
+        else:
+            j +=1
+
+        if (i == skip_1) and ((i+skip_1) < len(operand_1)):
+            if operand_1[i+skip_1] < operand_2[j]:
+                i += skip_1
+        if (j == skip_2) and ((i+skip_2) < len(operand_2)):
+            if operand_2[j+skip_2] < operand_1[j]:
+                j += skip_2
+    return operand_1
+
+
+
+
 
 def perform_and(operand_1,operand_2):
     """
     performs a boolean and operatioin
     """
-   # print operand_1
-    #print "I AM A SPACE"
-    #print operand_2
     result_list = []
-    i=0
-    j=0
+    i = j = 0
     skip_1 = int(math.sqrt(len(operand_1)))
     skip_2 = int(math.sqrt(len(operand_2)))
     while i<len(operand_1) and j<len(operand_2):
@@ -114,8 +189,7 @@ def perform_and(operand_1,operand_2):
         if (j == skip_2) and ((i+skip_2) < len(operand_2)):
             if operand_2[j+skip_2] < operand_1[j]:
                 j += skip_2
-    print "here is the result"
-    print result_list
+    
     return result_list
 
 
@@ -129,11 +203,11 @@ def perform_or(operand_1,operand_2):
         if operand_1[i] != operand_2[j]:
             if operand_2[j] < operand_1[i]:
                 operand_1.insert(i, operand_2[j])
-                j++
+                j +=1
             else:
                 while (operand_2[j] > operand_1[i]):
-                    j++
-                if (operand_2[j] != operand_1[i])
+                    j +=1
+                if (operand_2[j] != operand_1[i]):
                     operand_1.insert(i, operand_2[j])
     return operand_1
 
@@ -158,6 +232,7 @@ def push_to_stack(token):
             opp_stack.pop()
             
         else:
+            token = stemmer.stem(token).lower()
             output_stack.append(token)
 
 
