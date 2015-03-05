@@ -28,8 +28,9 @@ def make_queries():
     """
     with open(dict_filename, 'r') as d:
         the_dictionary = pickle.load(d)
-
+    #print the_dictionary
     with open(queries_filename,'r') as f, open(post_filename,'r') as p:
+        
 
         for line in f: ##go through each query
             ##opp_stack = []
@@ -53,8 +54,7 @@ def make_queries():
                     
             while opp_stack:
                 output_stack.append(opp_stack.pop())
-            for i in output_stack:
-               print i
+            print output_stack
             while output_stack:
                 token = output_stack.pop(0)
                 if(token in boolean_precedence):
@@ -74,7 +74,7 @@ def make_queries():
                         except KeyError:
                             operand_2 = []
                     if token == "AND":
-                        perform_and(operand_1,operand_2)
+                        result_stack.append(perform_and(operand_1,operand_2))
                     elif token == "OR": 
                         perform_or(operand_1,operand_2)
                 else:
@@ -90,23 +90,32 @@ def perform_and(operand_1,operand_2):
     """
     performs a boolean and operatioin
     """
+   # print operand_1
+    #print "I AM A SPACE"
+    #print operand_2
     result_list = []
     i=0
     j=0
+    skip_1 = int(math.sqrt(len(operand_1)))
+    skip_2 = int(math.sqrt(len(operand_2)))
     while i<len(operand_1) and j<len(operand_2):
         if operand_1[i] == operand_2[j]:
-            result_list.append[operand_1[i]]
+            result_list.append(operand_1[i])
+            i +=1
+            j +=1
         elif int(operand_1[i]) < int(operand_2[j]):
             i +=1
         else:
             j +=1
 
-        if i == math.sqrt(len(operand_1)):
-            if operand_1[i+math.sqrt(len(posting))] < bill[j]:
-                i += math.sqrt(len(posting))
-        if j == math.sqrt(len(operand_2)):
-            if operand_1[j+math.sqrt(len(posting))] < bill[j]:
-                j += math.sqrt(len(posting)) 
+        if (i == skip_1) and ((i+skip_1) < len(operand_1)):
+            if operand_1[i+skip_1] < operand_2[j]:
+                i += skip_1
+        if (j == skip_2) and ((i+skip_2) < len(operand_2)):
+            if operand_2[j+skip_2] < operand_1[j]:
+                j += skip_2
+    print "here is the result"
+    print result_list
     return result_list
 
 
