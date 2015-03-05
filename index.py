@@ -18,6 +18,7 @@ class Indexer(object):
 
         self.postings = collections.defaultdict(list)
         self.dictionary = {}
+        self.stopwords = set(string.punctuation)
         
         self.create_postings(doc_directory)
         self.write_files()
@@ -27,10 +28,13 @@ class Indexer(object):
         create a dict of words and their associated posting lists
         eg. {"bill": [1, 10, 109]}
         """
-        stopwords = set(string.punctuation)
-        if "stopwords" in os.listdir(os.path.dirname(dirname)): # remove stopwords if given
-            with open(os.path.join(os.path.dirname(dirname), "stopwords")) as s:
-                stopwords = set(s.read().split()).union(stopwords)
+
+        def remove_stopwords(): # remove stopwords if given
+            if "stopwords" in os.listdir(os.path.dirname(dirname)):
+                with open(os.path.join(os.path.dirname(dirname), "stopwords")) as s:
+                    self.stopwords = set(s.read().split()).union(self.stopwords)
+
+        # remove_stopwords()
 
         for count, doc_id in enumerate(os.listdir(dirname)):
             if count == self.k: # use k documents to train
@@ -40,7 +44,7 @@ class Indexer(object):
                 tokens = [word for sent in nltk.sent_tokenize(text) for word in nltk.word_tokenize(sent)]
                 for token in tokens:
                     word = stemmer.stem(token).lower()
-                    if word not in stopwords:
+                    if word not in self.stopwords:
                         if self.postings[word][-1:] != [doc_id]: # check last doc_id for redundancy
                             self.postings[word].append(doc_id)
 
@@ -60,7 +64,6 @@ class Indexer(object):
                 f.write(positions + "\n")
 
         pickle.dump(self.dictionary, open(self.dict_filename, "wb")) # write dictionary.txt
-        print self.dictionary
 
 
 #-------------------------------------------------------------------------------
