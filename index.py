@@ -54,12 +54,13 @@ class Indexer(object):
             for word in self.postings:
                 frequency = len(self.postings[word])
                 offset = f.tell() # location in the postings.txt file
-                self.dictionary[word] = frequency, offset
+                self.dictionary[str(word)] = frequency, offset
                 
                 positions = " ".join(sorted(self.postings[word], key=int)) # sort postings
                 f.write(positions + "\n")
 
         pickle.dump(self.dictionary, open(self.dict_filename, "wb")) # write dictionary.txt
+        print self.dictionary
 
 
 #-------------------------------------------------------------------------------
