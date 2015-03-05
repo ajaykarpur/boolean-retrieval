@@ -119,7 +119,23 @@ def perform_and(operand_1,operand_2):
     return result_list
 
 
+def perform_or(operand_1,operand_2):
+    """
+    performs a boolean or operation
+    """
+    i = j = 0
 
+    while i < len(operand_1) and j < len(operand_2):
+        if operand_1[i] != operand_2[j]:
+            if operand_2[j] < operand_1[i]:
+                operand_1.insert(i, operand_2[j])
+                j++
+            else:
+                while (operand_2[j] > operand_1[i]):
+                    j++
+                if (operand_2[j] != operand_1[i])
+                    operand_1.insert(i, operand_2[j])
+    return operand_1
 
                 
 
