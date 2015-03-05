@@ -2,6 +2,7 @@
 import sys
 import getopt
 import pickle
+import math
 
 
 the_dictionary = {}
@@ -11,15 +12,7 @@ output_stack = []
 result_stack = []
 #-------------------------------------------------------------------------------
    
-
-def make_dict():
-    """
-    unpickels the dictionary.txt file to creat a python dictionary
-    """
-    with open(dict_filename, 'r') as f:
-        the_dictionary = pickle.load(f)
-    print the_dictionary["Gates"]
-
+    
 # def single_query(operator,word_1,word_2 = ""):
 #     """ perform a boolean search query on word_1 and word_2 with operator. 
 #         if operator is NOT then word_2 will be empty
@@ -33,7 +26,11 @@ def make_queries():
     goes through each line of the query file building
     a post index queue for the queries and then performing that query
     """
-    with open(queries_filename,'r') as f,open(post_filename,'r') as p:
+    with open(dict_filename, 'r') as d:
+        the_dictionary = pickle.load(d)
+
+    with open(queries_filename,'r') as f, open(post_filename,'r') as p:
+
         for line in f: ##go through each query
             ##opp_stack = []
            ## output_stack = []
@@ -58,26 +55,60 @@ def make_queries():
                 output_stack.append(opp_stack.pop())
             for i in output_stack:
                print i
-            # while output_stack:
-            #     token = output_stack.pop(0)
-            #     if(token in boolean_precedence and token != 'NOT'):
-            #         operand_1 = result_stack.pop()
-            #         operand_2 = result_stack.pop()
-            #         if isinstance(operand_1, str):
-            #             operand_1 = p.seek(the_dictionary[operand_1][1])
-            #             print operand_1
-            #     else:
-            #         result_stack.append(token)
-            #         #perform_query(opperand_1,opperand_2,token)
+            while output_stack:
+                token = output_stack.pop(0)
+                if(token in boolean_precedence):
+                    operand_1 = result_stack.pop()
+                    operand_2 = result_stack.pop()
+                    if isinstance(operand_1, str):
+                        try:
+                            p.seek(the_dictionary[operand_1][1])
+                            operand_1 =p.readline().split()
+                        except KeyError:
+                            operand_1 = []
+                    
+                    if isinstance(operand_2, str):
+                        try:
+                            p.seek(the_dictionary[operand_2][1])
+                            operand_2 =p.readline().split()
+                        except KeyError:
+                            operand_2 = []
+                    if token == "AND":
+                        perform_and(operand_1,operand_2)
+                    elif token == "OR": 
+                        perform_or(operand_1,operand_2)
+                else:
+                    result_stack.append(token)
+
+                    #perform_query(operand_1,operand_2,token)
 
 
 
  
 
-#def perform_query(operand_1,opperand_2,operator):
+def perform_and(operand_1,operand_2):
     """
-    performs a boolean operatioin by looking up
+    performs a boolean and operatioin
     """
+    result_list = []
+    i=0
+    j=0
+    while i<len(operand_1) and j<len(operand_2):
+        if operand_1[i] == operand_2[j]:
+            result_list.append[operand_1[i]]
+        elif int(operand_1[i]) < int(operand_2[j]):
+            i +=1
+        else:
+            j +=1
+
+        if i == math.sqrt(len(operand_1)):
+            if operand_1[i+math.sqrt(len(posting))] < bill[j]:
+                i += math.sqrt(len(posting))
+        if j == math.sqrt(len(operand_2)):
+            if operand_1[j+math.sqrt(len(posting))] < bill[j]:
+                j += math.sqrt(len(posting)) 
+    return result_list
+
 
 
 
@@ -131,5 +162,5 @@ if dict_filename == None or post_filename == None or queries_filename == None or
     usage()
     sys.exit(2)
 
-make_dict()
+
 make_queries()
