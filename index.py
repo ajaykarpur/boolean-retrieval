@@ -18,6 +18,7 @@ class Indexer(object):
 
         self.postings = collections.defaultdict(list)
         self.dictionary = {}
+        self.all_doc_ids = []
         self.stopwords = set(string.punctuation)
         
         self.create_postings(doc_directory)
@@ -39,6 +40,7 @@ class Indexer(object):
         for count, doc_id in enumerate(os.listdir(dirname)):
             if count == self.k: # use k documents to train
                 break
+            self.all_doc_ids.append(doc_id)
             with open(os.path.join(dirname, doc_id)) as f:
                 text = f.read()
                 tokens = [word for sent in nltk.sent_tokenize(text) for word in nltk.word_tokenize(sent)]
@@ -64,6 +66,8 @@ class Indexer(object):
                 f.write(positions + "\n")
 
         pickle.dump(self.dictionary, open(self.dict_filename, "wb")) # write dictionary.txt
+
+        pickle.dump(self.all_doc_ids, open("all_doc_ids.txt", "wb"))
 
 
 #-------------------------------------------------------------------------------
