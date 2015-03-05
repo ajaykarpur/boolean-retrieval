@@ -6,6 +6,7 @@ import string
 import pickle
 import collections
 import nltk
+import re
 from nltk.stem.porter import PorterStemmer
 
 stemmer = PorterStemmer()
@@ -35,7 +36,10 @@ class Indexer(object):
                 with open(os.path.join(os.path.dirname(dirname), "stopwords")) as s:
                     self.stopwords = set(s.read().split()).union(self.stopwords)
 
-        # remove_stopwords()
+        def remove_numbers(text):
+            return text.translate(None, string.digits)
+
+        remove_stopwords()
 
         for count, doc_id in enumerate(os.listdir(dirname)):
             if count == self.k: # use k documents to train
@@ -43,12 +47,19 @@ class Indexer(object):
             self.all_doc_ids.append(doc_id)
             with open(os.path.join(dirname, doc_id)) as f:
                 text = f.read()
+                text = remove_numbers(text)
                 tokens = [word for sent in nltk.sent_tokenize(text) for word in nltk.word_tokenize(sent)]
                 for token in tokens:
                     word = stemmer.stem(token).lower()
                     if word not in self.stopwords:
                         if self.postings[word][-1:] != [doc_id]: # check last doc_id for redundancy
                             self.postings[word].append(doc_id)
+
+                        for subword in re.split('[- /]',token):
+                            subword = stemmer.stem(subword).lower()
+                            if subword not in self.stopwords:
+                                if self.postings[subword][-1:] != [doc_id]: # check last doc_id for redundancy
+                                    self.postings[subword].append(doc_id)
 
     def write_files(self):
         """
@@ -66,6 +77,7 @@ class Indexer(object):
                 f.write(positions + "\n")
 
         pickle.dump(self.dictionary, open(self.dict_filename, "wb")) # write dictionary.txt
+        print self.dictionary
 
         pickle.dump(self.all_doc_ids, open("all_doc_ids.txt", "wb"))
 
