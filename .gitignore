@@ -54,3 +54,7 @@ index.log.txt
 search.console.txt
 search.log.txt
 all_doc_ids.txt
+
+# PyDev
+.project
+.pydevproject
