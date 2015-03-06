@@ -1,11 +1,17 @@
 1. You will observe that a large portion of the terms in the dictionary are numbers. However, we normally do not use numbers as query terms to search. Do you think it is a good idea to remove these number entries from the dictionary and the postings lists? Can you propose methods to normalize these numbers? How many percentage of reduction in disk storage do you observe after removing/normalizing these numbers?
 
-    ...
+    One potential method of normalizing the numbers would be to convert them all to words. Using this method, one could also identify specific formats of numbers (eg. years, currencies), and normalize them accordingly. (eg. $34.60 --> thirty four dollars and sixty cents). Removing the numbers would only serve to save space, but would not improve the quality of the results. Numbers such as dates are especially salient in searches, and removing these would be counterproductive.
+
+    Before removing numbers, the space taken up on the disk was 4.17 MB (2.81 MB for postings.txt, 1.36 MB for dictionary.txt). After removing numbers, the space taken up on the disk was 3.368 MB (2.54 MB for postings.txt, 828 KB for dictionary.txt). This is a 19.23% reduction in disk storage.
 
 2. What do you think will happen if we remove stop words from the dictionary and postings file? How does it affect the searching phase?
 
-    ...
+    Removing stopwords will reduce the size of the dictionary and the postings file. It will also reduce the number of irrelevant documents that are returned to the user.
+
+    When removing stopwords, the space taken up on the disk was 3.4 MB (2.06 MB for postings.txt and 1.34 MB for dictionary.txt). This is an 18.47% reduction in disk storage.
 
 3. The NLTK tokenizer may not correctly tokenize all terms. What do you observe from the resulting terms produced by sent_tokenize() and word_tokenize()? Can you propose rules to further refine these results?
 
-    ...
+    One example of the NLTK tokenizer improperly tokenizing a term is "UPS" --> "up". Here, the tokenizer hypercorrects the name of a company to an entirely unrelated (and much more common) word. The tokenizer makes many such errors that may reduce the quality of the results.
+
+    One rule to potentially further refine the result is to split compound words (those separated by a hyphen or a slash). When these words are joined, the stemmer only stems the second word, and searches for either word individually do not return the postings for the compound word. By splitting the compound word, both individual words will be properly stemmed and users searching for either term will also receive results for documents containing the compound word. We implemented this rule in lines 60-64 of index.py (left uncommented, so it runs by default).

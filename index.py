@@ -39,7 +39,7 @@ class Indexer(object):
         def remove_numbers(text):
             return text.translate(None, string.digits)
 
-        # remove_stopwords()
+        remove_stopwords()
 
         for count, doc_id in enumerate(os.listdir(dirname)):
             if count == self.k: # use k documents to train
@@ -57,11 +57,11 @@ class Indexer(object):
                         if self.postings[word][-1:] != [doc_id]: # check last doc_id for redundancy
                             self.postings[word].append(doc_id)
 
-                        # for subword in re.split('[- /]',token):
-                        #     subword = stemmer.stem(subword).lower()
-                        #     if subword not in self.stopwords:
-                        #         if self.postings[subword][-1:] != [doc_id]: # check last doc_id for redundancy
-                        #             self.postings[subword].append(doc_id)
+                        for subword in re.split('[- /]',token):
+                            subword = stemmer.stem(subword).lower()
+                            if subword not in self.stopwords:
+                                if self.postings[subword][-1:] != [doc_id]: # check last doc_id for redundancy
+                                    self.postings[subword].append(doc_id)
 
     def write_files(self):
         """

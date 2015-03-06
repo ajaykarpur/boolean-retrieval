@@ -30,6 +30,7 @@ def make_queries():
     with open(queries_filename,'r') as f, open(post_filename,'r') as p, open(output_filename, 'w') as o:
         
         for line in f: ##go through each query
+           
             for token in line.split():
 
                 if '(' in token:
@@ -121,7 +122,7 @@ def perform_not_or(operand_1,operand_2):
     if(is_not(operand_1) and is_not(operand_2)):
         operand_1.popleft()
         operand_2.popleft()
-        result_list = deque(perform_and(operand_1,operand_2))
+        result_list = perform_and(operand_1,operand_2)
         result_list.appendleft("NOT")
     elif(is_not(operand_1)):
         result_list = operand_1
@@ -146,12 +147,31 @@ def perform_not_and(operand_1,operand_2):
 
 def a_less_b(operand_1,operand_2):
     """
-    returns the set operand_1 less everything in the set operand_2
+    returns the set operand_1 less everything thats in the set operand_2
     """
-    operand_1 = set(operand_1)
-    operand_2 = set(operand_2)
+    operand_1 = list(operand_1)
+    operand_2 = list(operand_2)
 
-    return sorted(deque(operand_1 - operand_2), key = int)
+    i = j = 0
+    skip_1 = int(math.sqrt(len(operand_1)))
+    skip_2 = int(math.sqrt(len(operand_2)))
+    while i<len(operand_1) and j<len(operand_2):
+        if operand_1[i] == operand_2[j]:
+            operand_1.pop(i)
+            i +=1
+            j +=1
+        elif int(operand_1[i]) < int(operand_2[j]):
+            i +=1
+        else:
+            j +=1
+
+        if (i == skip_1) and ((i+skip_1) < len(operand_1)):
+            if operand_1[i+skip_1] < operand_2[j]:
+                i += skip_1
+        if (j == skip_2) and ((j+skip_2) < len(operand_2)):
+            if operand_2[j+skip_2] < operand_1[i]:
+                j += skip_2
+    return deque(operand_1)
 
 
 
@@ -161,20 +181,60 @@ def perform_and(operand_1,operand_2):
     performs a boolean and operation
     """
 
-    operand_1 = set(operand_1)
-    operand_2 = set(operand_2)
+    result_list = deque()
+    if not operand_1 or not operand_2:
+        return deque()
+    i = j = 0
+    skip_1 = int(math.sqrt(len(operand_1)))
+    skip_2 = int(math.sqrt(len(operand_2)))
+    while i<len(operand_1) and j<len(operand_2):
+        if operand_1[i] == operand_2[j]:
+            result_list.append(operand_1[i])
+            i +=1
+            j +=1
+        elif int(operand_1[i]) < int(operand_2[j]):
+            i +=1
+        else:
+            j +=1
 
-    return sorted(deque(operand_1 & operand_2), key = int)
+        if (i == skip_1) and ((i+skip_1) < len(operand_1)):
+            if operand_1[i+skip_1] < operand_2[j]:
+                i += skip_1
+        if (j == skip_2) and ((j+skip_2) < len(operand_2)):
+            if operand_2[j+skip_2] < operand_1[i]:
+                j += skip_2
+    return sorted(result_list, key = int)
 
 
 def perform_or(operand_1,operand_2):
     """
     performs a boolean or operation
     """
-    operand_1 = set(operand_1)
-    operand_2 = set(operand_2)
+    operand_1 = list(operand_1)
+    operand_2 = list(operand_2)
 
-    return sorted(deque(operand_1 | operand_2), key = int)
+    i = j = 0
+    if len(operand_1) < len(operand_2): # make operand 1 the larger of the two
+        temp = operand_2
+        operand_2 = operand_1
+        operand_1 = temp
+    while j < len(operand_2):
+        if operand_1[i] != operand_2[j]:
+            if operand_1[i] > operand_2[j]:
+                operand_1.insert(i,operand_2[j])
+                i +=1
+                j +=1
+            elif i == (len(operand_1) - 1):
+                operand_1.append(operand_2[j])
+                j +=1
+            else:
+                i+=1
+        elif i == (len(operand_1) - 1):
+            j+=1
+        else:
+            i+=1
+            j+=1
+    return deque(operand_1)
 
                 
 
