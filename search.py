@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import sys
 import getopt
+from collections import deque
 import pickle
 import math
 import nltk
@@ -10,10 +11,10 @@ stemmer = PorterStemmer()
 
 the_dictionary = {}
 boolean_precedence = {'OR':1,'AND':2,'NOT':3,'(':0}
-opp_stack = []
-output_stack = []
-result_stack = []
-universal_set = []
+opp_stack = deque()
+output_stack = deque()
+result_stack = deque()
+universal_set = deque()
 #-------------------------------------------------------------------------------
    
     
@@ -61,21 +62,20 @@ def make_queries():
                 output_stack.append(opp_stack.pop())
 
             while output_stack:
-                token = output_stack.pop(0)
+                token = output_stack.popleft()
                 if token == "NOT":
                     operand = result_stack.pop()
                     if isinstance(operand, basestring):
                         try:
                             p.seek(the_dictionary[operand][1])
-                            operand = p.readline().split()
-                            operand.insert(0,"NOT")
+                            operand = deque(p.readline().split())
+                            operand.appendleft("NOT")
                         except KeyError:
-                            operand = ["0"]
-                            operand.insert(0,"NOT")
+                            operand = deque(["NOT"])
                     elif operand[0] == "NOT": # NOT NOT cancels
-                        operand.pop(0)
+                        operand.popleft()
                     else :
-                        operand.insert(0,"NOT")
+                        operand.appendleft("NOT")
                     result_stack.append(operand)
                 elif(token in boolean_precedence and token != "NOT"):
                     operand_1 = result_stack.pop()
@@ -83,23 +83,23 @@ def make_queries():
                     if isinstance(operand_1, basestring):
                         try:
                             p.seek(the_dictionary[operand_1][1])
-                            operand_1 =p.readline().split()
+                            operand_1 = deque(p.readline().split())
                         except KeyError:
-                            operand_1 = ["0"]
+                            operand_1 = deque()
                     
                     if isinstance(operand_2, basestring):
                         try:
                             p.seek(the_dictionary[operand_2][1])
-                            operand_2 = p.readline().split()
+                            operand_2 = deque(p.readline().split())
                         except KeyError:
-                            operand_2 = ["0"]
+                            operand_2 = deque()
                     if token == "AND":
-                        if(operand_1[0] == "NOT" or operand_2[0] == "NOT"):
+                        if(operand_1[:1] == "NOT" or operand_2[:1] == "NOT"):
                             result_stack.append(perform_not_and(operand_1,operand_2))
                         else:
                             result_stack.append(perform_and(operand_1,operand_2))
                     elif token == "OR":
-                        if(operand_1[0] == "NOT" or operand_2[0] == "NOT"):
+                        if(operand_1[:1] == "NOT" or operand_2[:1] == "NOT"):
                             result_stack.append(perform_not_or(operand_1,operand_2)) 
                         else:  
                             result_stack.append(perform_or(operand_1,operand_2))
@@ -107,10 +107,8 @@ def make_queries():
                     result_stack.append(token)
             result = result_stack.pop()
             if result[0] == "NOT":
-                result.pop(0)
+                result.popleft()
                 result = a_less_b(universal_set,result)
-            if result[0] == "0":
-                result = []
 
             print "here is the result"
             print result
@@ -118,35 +116,31 @@ def make_queries():
 
  
 def perform_not_or(operand_1,operand_2):
-    result_list = []
-    if(operand_1[0] == "NOT" and operand_2[0] == "NOT"):
-        operand_1.pop(0)
-        operand_2.pop(0)
+    result_list = deque()
+    if(operand_1[:1] == "NOT" and operand_2[:1] == "NOT"):
+        operand_1.popleft()
+        operand_2.popleft()
         result_list = perform_and(operand_1,operand_2)
-        result_list.insert(0,"NOT")
-    elif(operand_1[0] == "NOT"):
+        result_list.appendleft("NOT")
+    elif(operand_1[:1] == "NOT"):
         result_list = operand_1
     else:
         result_list = operand_2
-    if not result_list:
-        result_list = ["0"]
     return result_list
 
 def perform_not_and(operand_1,operand_2):
-    result_list = []
-    if(operand_1[0] == "NOT" and operand_2[0] == "NOT"):
-        operand_1.pop(0)
-        operand_2.pop(0)
+    result_list = deque()
+    if(operand_1[:1] == "NOT" and operand_2[:1] == "NOT"):
+        operand_1.popleft()
+        operand_2.popleft()
         result_list = perform_or(operand_1,operand_2)
-        result_list.insert(0,"NOT")
-    elif(operand_1[0] == "NOT"):
-        operand_1.pop(0)
+        result_list.appendleft("NOT")
+    elif(operand_1[:1] == "NOT"):
+        operand_1.popleft()
         result_list = a_less_b(operand_2,operand_1)
     else:
-        operand_2.pop(0)
+        operand_2.popleft()
         result_list = a_less_b(operand_1,operand_2)
-    if not result_list:
-        result_list = ["0"]
     return result_list
 
 def a_less_b(operand_1,operand_2):
@@ -172,8 +166,6 @@ def a_less_b(operand_1,operand_2):
         if (j == skip_2) and ((j+skip_2) < len(operand_2)):
             if operand_2[j+skip_2] < operand_1[i]:
                 j += skip_2
-    if not operand_1:
-        operand_1 = ["0"]
     return operand_1
 
 
@@ -185,9 +177,9 @@ def perform_and(operand_1,operand_2):
     performs a boolean and operatioin
     """
 
-    result_list = []
-    if operand_1[0] == "0" or operand_2[0] == "0":
-        return ["0"]
+    result_list = deque()
+    if not operand_1 or not operand_2:
+        return deque()
     i = j = 0
     skip_1 = int(math.sqrt(len(operand_1)))
     skip_2 = int(math.sqrt(len(operand_2)))
@@ -207,8 +199,6 @@ def perform_and(operand_1,operand_2):
         if (j == skip_2) and ((j+skip_2) < len(operand_2)):
             if operand_2[j+skip_2] < operand_1[i]:
                 j += skip_2
-    if not result_list:
-        result_list = ["0"]
     return result_list
 
 
@@ -234,8 +224,6 @@ def perform_or(operand_1,operand_2):
         else:
             i+=1
             j+=1
-    if not operand_1:
-        operand_1 = ["0"]
     return operand_1
 
                 

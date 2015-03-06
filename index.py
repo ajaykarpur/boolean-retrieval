@@ -19,7 +19,7 @@ class Indexer(object):
 
         self.postings = collections.defaultdict(list)
         self.dictionary = {}
-        self.all_doc_ids = []
+        self.all_doc_ids = collections.deque()
         self.stopwords = set(string.punctuation)
         
         self.create_postings(doc_directory)
