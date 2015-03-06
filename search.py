@@ -109,6 +109,9 @@ def make_queries():
             if result[0] == "NOT":
                 result.pop(0)
                 result = a_less_b(universal_set,result)
+            if result[0] == "0":
+                result = []
+
             print "here is the result"
             print result
 
@@ -117,18 +120,24 @@ def make_queries():
 def perform_not_or(operand_1,operand_2):
     result_list = []
     if(operand_1[0] == "NOT" and operand_2[0] == "NOT"):
-        result_list = perform_and(operand_1.pop(0),operand_2.pop(0))
+        operand_1.pop(0)
+        operand_2.pop(0)
+        result_list = perform_and(operand_1,operand_2)
         result_list.insert(0,"NOT")
     elif(operand_1[0] == "NOT"):
         result_list = operand_1
     else:
         result_list = operand_2
+    if not result_list:
+        result_list = ["0"]
     return result_list
 
 def perform_not_and(operand_1,operand_2):
     result_list = []
     if(operand_1[0] == "NOT" and operand_2[0] == "NOT"):
-        result_list = perform_or(operand_1.pop(0),operand_2.pop(0))
+        operand_1.pop(0)
+        operand_2.pop(0)
+        result_list = perform_or(operand_1,operand_2)
         result_list.insert(0,"NOT")
     elif(operand_1[0] == "NOT"):
         operand_1.pop(0)
@@ -136,6 +145,8 @@ def perform_not_and(operand_1,operand_2):
     else:
         operand_2.pop(0)
         result_list = a_less_b(operand_1,operand_2)
+    if not result_list:
+        result_list = ["0"]
     return result_list
 
 def a_less_b(operand_1,operand_2):
@@ -158,9 +169,11 @@ def a_less_b(operand_1,operand_2):
         if (i == skip_1) and ((i+skip_1) < len(operand_1)):
             if operand_1[i+skip_1] < operand_2[j]:
                 i += skip_1
-        if (j == skip_2) and ((i+skip_2) < len(operand_2)):
-            if operand_2[j+skip_2] < operand_1[j]:
+        if (j == skip_2) and ((j+skip_2) < len(operand_2)):
+            if operand_2[j+skip_2] < operand_1[i]:
                 j += skip_2
+    if not operand_1:
+        operand_1 = ["0"]
     return operand_1
 
 
@@ -191,10 +204,11 @@ def perform_and(operand_1,operand_2):
         if (i == skip_1) and ((i+skip_1) < len(operand_1)):
             if operand_1[i+skip_1] < operand_2[j]:
                 i += skip_1
-        if (j == skip_2) and ((i+skip_2) < len(operand_2)):
-            if operand_2[j+skip_2] < operand_1[j]:
+        if (j == skip_2) and ((j+skip_2) < len(operand_2)):
+            if operand_2[j+skip_2] < operand_1[i]:
                 j += skip_2
-    
+    if not result_list:
+        result_list = ["0"]
     return result_list
 
 
@@ -203,19 +217,25 @@ def perform_or(operand_1,operand_2):
     performs a boolean or operation
     """
     i = j = 0
-
+    if len(operand_1) < len(operand_2):
+        temp = operand_2
+        operand_2 = operand_1
+        operand_1 = temp
     while i < len(operand_1) and j < len(operand_2):
         if operand_1[i] != operand_2[j]:
             if operand_2[j] < operand_1[i]:
                 operand_1.insert(i, operand_2[j])
                 j +=1
             else:
-                while (operand_2[j] > operand_1[i]):
+                while j < len(operand_2) and (operand_2[j] > operand_1[i]):
                     j+=1
-                if (operand_2[j] != operand_1[i]):
-                    operand_1.insert(i, operand_2[j])
-        i+=1
-        j+=1
+                if (operand_2[j-1] != operand_1[i]):
+                    operand_1.insert(i, operand_2[j-1])
+        else:
+            i+=1
+            j+=1
+    if not operand_1:
+        operand_1 = ["0"]
     return operand_1
 
                 
