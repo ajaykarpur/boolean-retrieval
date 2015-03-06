@@ -239,6 +239,11 @@ def perform_or(operand_1,operand_2):
                 j +=1
             else:
                 i+=1
+        elif i == (len(operand_1) - 1):
+            j+=1
+        else:
+            i+=1
+            j+=1
     return deque(operand_1)
 
                 
