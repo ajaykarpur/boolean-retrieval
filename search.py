@@ -224,23 +224,21 @@ def perform_or(operand_1,operand_2):
     operand_2 = list(operand_2)
 
     i = j = 0
-    if len(operand_1) < len(operand_2):
+    if len(operand_1) < len(operand_2):##make operand 1 the larger of the two
         temp = operand_2
         operand_2 = operand_1
         operand_1 = temp
-    while i < len(operand_1) and j < len(operand_2):
+    while j < len(operand_2):
         if operand_1[i] != operand_2[j]:
-            if operand_2[j] < operand_1[i]:
-                operand_1.insert(i, operand_2[j])
+            if operand_1[i] > operand_2[j]:
+                operand_1.insert(i,operand_2[j])
+                i +=1
+                j +=1
+            elif i == (len(operand_1) - 1):
+                operand_1.append(operand_2[j])
                 j +=1
             else:
-                while i<(len(operand_1)-1) and (operand_2[j] >= operand_1[i]):
-                    i+=1
-                if (operand_2[j] != operand_1[i]):
-                    operand_1.insert(i, operand_2[j])
-        else:
-            i+=1
-            j+=1
+                i+=1
     return deque(operand_1)
 
                 
