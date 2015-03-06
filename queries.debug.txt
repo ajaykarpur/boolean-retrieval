@@ -1,0 +1,5 @@
+UPS AND WMX AND stock
+september and WMX
+april AND WMX
+april AND NOT WMX
+WMX AND NOT april
