@@ -10,13 +10,3 @@ index.py:
 search.py:
 - Handled operators using the shunting yard algorithm.
 - Implemented stacks using Python's collections.deque structure.
-
-index.py              The code used to index the documents.
-search.py             The code used to search through the documents, using sets.
-broken-search.py 	  The code used to search through the documents, using lists and skip pointers.
-dictionary.txt        A pickled dict structure in the format {"word": frequency, offset}
-postings.txt          The postings in text format.
-ESSAY.txt             Our answers to the essay questions.
-README.txt            This document.
-test.bat              Batch script to quickly run and evaluate the code.
-test.sh               Shell script to quickly run and evaluate the code.
